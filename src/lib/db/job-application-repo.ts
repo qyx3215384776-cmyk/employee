@@ -1,14 +1,14 @@
 import { db } from './dexie-client';
-import type { JobApplication, MainStage, ResultType, TimelineEntry } from '@/types';
+import type { InterviewTip, JobApplication, MainStage, ResultType, TimelineEntry } from '@/types';
 
-const MAIN_STAGE_LABELS: Record<MainStage, string> = {
+export const MAIN_STAGE_LABELS: Record<MainStage, string> = {
   applied: '已投递',
   written_test: '笔试中',
   interviewing: '面试中',
   result: '结果',
 };
 
-const RESULT_TYPE_LABELS: Record<ResultType, string> = {
+export const RESULT_TYPE_LABELS: Record<ResultType, string> = {
   offer: 'Offer',
   rejected: '未通过',
   withdrawn: '已婉拒',
@@ -112,4 +112,29 @@ export async function deleteJobApplication(id: string): Promise<void> {
 export async function listTimelineEntries(jobApplicationId: string): Promise<TimelineEntry[]> {
   const entries = await db.timelineEntries.where('jobApplicationId').equals(jobApplicationId).toArray();
   return entries.sort((a, b) => b.eventDate.localeCompare(a.eventDate));
+}
+
+export interface TimelineEntryWithApplication extends TimelineEntry {
+  company: string;
+  position: string;
+}
+
+export async function listAllTimelineEntries(): Promise<TimelineEntryWithApplication[]> {
+  const [applications, entries] = await Promise.all([
+    db.jobApplications.toArray(),
+    db.timelineEntries.toArray(),
+  ]);
+  const applicationById = new Map(applications.map((app) => [app.id, app]));
+
+  return entries
+    .flatMap((entry) => {
+      const app = applicationById.get(entry.jobApplicationId);
+      return app ? [{ ...entry, company: app.company, position: app.position }] : [];
+    })
+    .sort((a, b) => b.eventDate.localeCompare(a.eventDate));
+}
+
+export async function listInterviewTips(jobApplicationId: string): Promise<InterviewTip[]> {
+  const tips = await db.interviewTips.where('jobApplicationId').equals(jobApplicationId).toArray();
+  return tips.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }

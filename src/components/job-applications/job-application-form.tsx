@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import type { JobApplication, MainStage, ResultType } from '@/types';
 
-const MAIN_STAGE_OPTIONS: { value: MainStage; label: string }[] = [
+export const MAIN_STAGE_OPTIONS: { value: MainStage; label: string }[] = [
   { value: 'applied', label: '已投递' },
   { value: 'written_test', label: '笔试中' },
   { value: 'interviewing', label: '面试中' },
