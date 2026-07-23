@@ -47,6 +47,17 @@ export async function createJobApplication(input: CreateJobApplicationInput): Pr
       note: '创建岗位记录',
       createdAt: now,
     });
+
+    if (application.nextActionDate) {
+      await db.timelineEntries.add({
+        id: crypto.randomUUID(),
+        jobApplicationId: application.id,
+        type: 'interview_scheduled',
+        toStage: stageLabel(application),
+        eventDate: application.nextActionDate,
+        createdAt: now,
+      });
+    }
   });
 
   return application;
@@ -94,6 +105,17 @@ export async function updateJobApplication(
         fromStage: stageLabel(existing),
         toStage: stageLabel(updated),
         eventDate: now,
+        createdAt: now,
+      });
+    }
+
+    if (updated.nextActionDate && updated.nextActionDate !== existing.nextActionDate) {
+      await db.timelineEntries.add({
+        id: crypto.randomUUID(),
+        jobApplicationId: id,
+        type: 'interview_scheduled',
+        toStage: stageLabel(updated),
+        eventDate: updated.nextActionDate,
         createdAt: now,
       });
     }

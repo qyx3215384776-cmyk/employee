@@ -141,7 +141,8 @@ export function JobDetailDialog({ application, open, onOpenChange, onChanged }: 
                     <ul className="flex flex-col gap-1.5">
                       {interviewEvents.map((entry) => (
                         <li key={entry.id} className="text-sm">
-                          {formatDateTime(entry.eventDate)} {entry.note}
+                          <span className="text-muted-foreground">{formatDateTime(entry.eventDate)}</span>{' '}
+                          <span>{describeTimelineChange(entry)}</span>
                         </li>
                       ))}
                     </ul>

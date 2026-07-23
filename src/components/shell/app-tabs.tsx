@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { JobBoard } from '@/components/job-board/job-board';
+import { InterviewCalendar } from '@/components/calendar/interview-calendar';
 
 type TabValue = 'agent' | 'board' | 'calendar' | 'tips';
 
@@ -16,6 +17,14 @@ function ComingSoon({ description }: { description: string }) {
 
 export function AppTabs() {
   const [tab, setTab] = useState<TabValue>('board');
+  const [focusApplicationId, setFocusApplicationId] = useState<string | null>(null);
+
+  const openApplication = useCallback((jobApplicationId: string) => {
+    setFocusApplicationId(jobApplicationId);
+    setTab('board');
+  }, []);
+
+  const clearFocusApplication = useCallback(() => setFocusApplicationId(null), []);
 
   return (
     <Tabs value={tab} onValueChange={(value) => setTab(value as TabValue)}>
@@ -30,10 +39,10 @@ export function AppTabs() {
         <ComingSoon description="对话录入岗位投递进度" />
       </TabsContent>
       <TabsContent value="board">
-        <JobBoard />
+        <JobBoard focusApplicationId={focusApplicationId} onFocusApplicationHandled={clearFocusApplication} />
       </TabsContent>
       <TabsContent value="calendar">
-        <ComingSoon description="面试安排月视图日历" />
+        <InterviewCalendar onOpenApplication={openApplication} />
       </TabsContent>
       <TabsContent value="tips">
         <ComingSoon description="面试复盘笔记" />

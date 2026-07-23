@@ -10,7 +10,12 @@ import { listAllTimelineEntries, listJobApplications } from '@/lib/db/job-applic
 import { exportJobApplicationsToExcel } from '@/lib/export/export-job-applications';
 import type { JobApplication } from '@/types';
 
-export function JobBoard() {
+interface JobBoardProps {
+  focusApplicationId?: string | null;
+  onFocusApplicationHandled?: () => void;
+}
+
+export function JobBoard({ focusApplicationId, onFocusApplicationHandled }: JobBoardProps = {}) {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState<BoardView>('kanban');
@@ -37,6 +42,20 @@ export function JobBoard() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    // This reacts to an imperative "open this application" command sent from
+    // a sibling tab (see AppTabs), not to deriving state from props — there's
+    // no render-time equivalent, so the setState calls have to live here.
+    if (!focusApplicationId || !loaded) return;
+    const app = applications.find((a) => a.id === focusApplicationId) ?? null;
+    if (app) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedApp(app);
+      setDetailOpen(true);
+    }
+    onFocusApplicationHandled?.();
+  }, [focusApplicationId, loaded, applications, onFocusApplicationHandled]);
 
   const filteredApplications = useMemo(() => {
     const term = search.trim().toLowerCase();
