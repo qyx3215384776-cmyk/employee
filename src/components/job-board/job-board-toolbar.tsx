@@ -15,6 +15,11 @@ import type { MainStage } from '@/types';
 export type StageFilter = MainStage | 'all';
 export type BoardView = 'kanban' | 'list';
 
+const STAGE_FILTER_ITEMS: { value: StageFilter; label: string }[] = [
+  { value: 'all', label: '全部阶段' },
+  ...MAIN_STAGE_OPTIONS,
+];
+
 interface JobBoardToolbarProps {
   search: string;
   onSearchChange: (value: string) => void;
@@ -45,7 +50,11 @@ export function JobBoardToolbar({
         className="w-full sm:w-56"
       />
 
-      <Select value={stageFilter} onValueChange={(value) => onStageFilterChange(value as StageFilter)}>
+      <Select
+        items={STAGE_FILTER_ITEMS}
+        value={stageFilter}
+        onValueChange={(value) => onStageFilterChange(value as StageFilter)}
+      >
         <SelectTrigger className="w-full sm:w-40">
           <SelectValue placeholder="全部阶段" />
         </SelectTrigger>

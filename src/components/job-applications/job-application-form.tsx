@@ -148,6 +148,7 @@ export function JobApplicationForm({ initial, onSubmit, onCancel }: JobApplicati
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="mainStage">阶段</Label>
             <Select
+              items={MAIN_STAGE_OPTIONS}
               value={values.mainStage}
               onValueChange={(value) =>
                 setValues((v) => ({ ...v, mainStage: value as MainStage }))
@@ -182,6 +183,7 @@ export function JobApplicationForm({ initial, onSubmit, onCancel }: JobApplicati
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="resultType">结果</Label>
               <Select
+                items={RESULT_TYPE_OPTIONS}
                 value={values.resultType}
                 onValueChange={(value) =>
                   setValues((v) => ({ ...v, resultType: value as ResultType }))
