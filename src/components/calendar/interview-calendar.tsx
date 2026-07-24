@@ -9,13 +9,14 @@ import { dateKey, getMonthGrid } from '@/lib/calendar';
 
 interface InterviewCalendarProps {
   onOpenApplication: (jobApplicationId: string) => void;
+  onRequestNewTip?: (jobApplicationId: string, timelineEntryId?: string) => void;
 }
 
 function monthLabel(date: Date): string {
   return `${date.getFullYear()}年${date.getMonth() + 1}月`;
 }
 
-export function InterviewCalendar({ onOpenApplication }: InterviewCalendarProps) {
+export function InterviewCalendar({ onOpenApplication, onRequestNewTip }: InterviewCalendarProps) {
   const [cursor, setCursor] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -98,6 +99,7 @@ export function InterviewCalendar({ onOpenApplication }: InterviewCalendarProps)
           if (!open) setSelectedDay(null);
         }}
         onOpenApplication={onOpenApplication}
+        onRequestNewTip={onRequestNewTip}
       />
     </div>
   );

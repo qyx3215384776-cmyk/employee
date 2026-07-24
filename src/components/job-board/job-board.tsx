@@ -13,9 +13,14 @@ import type { JobApplication } from '@/types';
 interface JobBoardProps {
   focusApplicationId?: string | null;
   onFocusApplicationHandled?: () => void;
+  onRequestNewTip?: (jobApplicationId: string, timelineEntryId?: string) => void;
 }
 
-export function JobBoard({ focusApplicationId, onFocusApplicationHandled }: JobBoardProps = {}) {
+export function JobBoard({
+  focusApplicationId,
+  onFocusApplicationHandled,
+  onRequestNewTip,
+}: JobBoardProps = {}) {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState<BoardView>('kanban');
@@ -106,6 +111,7 @@ export function JobBoard({ focusApplicationId, onFocusApplicationHandled }: JobB
         open={detailOpen}
         onOpenChange={setDetailOpen}
         onChanged={refresh}
+        onRequestNewTip={onRequestNewTip}
       />
 
       <NewApplicationDialog open={newDialogOpen} onOpenChange={setNewDialogOpen} onCreated={refresh} />

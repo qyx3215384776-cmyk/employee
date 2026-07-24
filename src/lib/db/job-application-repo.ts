@@ -1,5 +1,5 @@
 import { db } from './dexie-client';
-import type { InterviewTip, JobApplication, MainStage, ResultType, TimelineEntry } from '@/types';
+import type { JobApplication, MainStage, ResultType, TimelineEntry } from '@/types';
 
 export const MAIN_STAGE_LABELS: Record<MainStage, string> = {
   applied: '已投递',
@@ -156,7 +156,3 @@ export async function listAllTimelineEntries(): Promise<TimelineEntryWithApplica
     .sort((a, b) => b.eventDate.localeCompare(a.eventDate));
 }
 
-export async function listInterviewTips(jobApplicationId: string): Promise<InterviewTip[]> {
-  const tips = await db.interviewTips.where('jobApplicationId').equals(jobApplicationId).toArray();
-  return tips.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-}

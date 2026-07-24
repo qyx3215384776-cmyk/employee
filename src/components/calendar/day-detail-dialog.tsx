@@ -9,9 +9,10 @@ interface DayDetailDialogProps {
   day: { date: Date; events: TimelineEntryWithApplication[] } | null;
   onOpenChange: (open: boolean) => void;
   onOpenApplication: (jobApplicationId: string) => void;
+  onRequestNewTip?: (jobApplicationId: string, timelineEntryId?: string) => void;
 }
 
-export function DayDetailDialog({ day, onOpenChange, onOpenApplication }: DayDetailDialogProps) {
+export function DayDetailDialog({ day, onOpenChange, onOpenApplication, onRequestNewTip }: DayDetailDialogProps) {
   return (
     <Dialog open={day !== null} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
@@ -35,15 +36,26 @@ export function DayDetailDialog({ day, onOpenChange, onOpenApplication }: DayDet
                   </div>
                   <div className="text-muted-foreground">{formatDateTime(event.eventDate)}</div>
                   <div>{describeTimelineChange(event)}</div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="mt-1 px-0"
-                    onClick={() => onOpenApplication(event.jobApplicationId)}
-                  >
-                    查看岗位详情
-                  </Button>
+                  <div className="mt-1 flex gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onOpenApplication(event.jobApplicationId)}
+                    >
+                      查看岗位详情
+                    </Button>
+                    {onRequestNewTip && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onRequestNewTip(event.jobApplicationId, event.id)}
+                      >
+                        写复盘
+                      </Button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

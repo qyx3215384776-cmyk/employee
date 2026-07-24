@@ -10,11 +10,11 @@ import {
 } from '@/components/job-applications/job-application-form';
 import {
   deleteJobApplication,
-  listInterviewTips,
   listTimelineEntries,
   stageLabel,
   updateJobApplication,
 } from '@/lib/db/job-application-repo';
+import { listInterviewTips } from '@/lib/db/interview-tip-repo';
 import { describeTimelineChange, formatDate, formatDateTime } from '@/lib/format';
 import type { InterviewTip, JobApplication, TimelineEntry } from '@/types';
 
@@ -23,9 +23,16 @@ interface JobDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onChanged: () => void;
+  onRequestNewTip?: (jobApplicationId: string, timelineEntryId?: string) => void;
 }
 
-export function JobDetailDialog({ application, open, onOpenChange, onChanged }: JobDetailDialogProps) {
+export function JobDetailDialog({
+  application,
+  open,
+  onOpenChange,
+  onChanged,
+  onRequestNewTip,
+}: JobDetailDialogProps) {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[] | null>(null);
   const [tips, setTips] = useState<InterviewTip[] | null>(null);
@@ -140,9 +147,21 @@ export function JobDetailDialog({ application, open, onOpenChange, onChanged }: 
                   ) : (
                     <ul className="flex flex-col gap-1.5">
                       {interviewEvents.map((entry) => (
-                        <li key={entry.id} className="text-sm">
-                          <span className="text-muted-foreground">{formatDateTime(entry.eventDate)}</span>{' '}
-                          <span>{describeTimelineChange(entry)}</span>
+                        <li key={entry.id} className="flex items-center justify-between gap-2 text-sm">
+                          <span>
+                            <span className="text-muted-foreground">{formatDateTime(entry.eventDate)}</span>{' '}
+                            <span>{describeTimelineChange(entry)}</span>
+                          </span>
+                          {onRequestNewTip && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onRequestNewTip(application.id, entry.id)}
+                            >
+                              写复盘
+                            </Button>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -150,7 +169,19 @@ export function JobDetailDialog({ application, open, onOpenChange, onChanged }: 
                 </section>
 
                 <section className="flex flex-col gap-2">
-                  <h3 className="text-sm font-semibold">面试Tips</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold">面试Tips</h3>
+                    {onRequestNewTip && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onRequestNewTip(application.id)}
+                      >
+                        新增复盘
+                      </Button>
+                    )}
+                  </div>
                   {tips === null ? (
                     <p className="text-sm text-muted-foreground">加载中…</p>
                   ) : tips.length === 0 ? (
