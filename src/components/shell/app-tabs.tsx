@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { JobBoard } from '@/components/job-board/job-board';
 import { InterviewCalendar } from '@/components/calendar/interview-calendar';
 import { InterviewTips } from '@/components/interview-tips/interview-tips';
+import { AgentChat } from '@/components/agent/agent-chat';
 
 type TabValue = 'agent' | 'board' | 'calendar' | 'tips';
 
@@ -13,16 +14,8 @@ interface NewTipRequest {
   timelineEntryId?: string;
 }
 
-function ComingSoon({ description }: { description: string }) {
-  return (
-    <div className="rounded-lg border border-dashed p-12 text-center text-sm text-muted-foreground">
-      即将推出 · {description}
-    </div>
-  );
-}
-
 export function AppTabs() {
-  const [tab, setTab] = useState<TabValue>('board');
+  const [tab, setTab] = useState<TabValue>('agent');
   const [focusApplicationId, setFocusApplicationId] = useState<string | null>(null);
   const [newTipRequest, setNewTipRequest] = useState<NewTipRequest | null>(null);
 
@@ -49,7 +42,7 @@ export function AppTabs() {
       </TabsList>
 
       <TabsContent value="agent">
-        <ComingSoon description="对话录入岗位投递进度" />
+        <AgentChat onOpenApplication={openApplication} />
       </TabsContent>
       <TabsContent value="board">
         <JobBoard
