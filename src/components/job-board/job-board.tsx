@@ -100,7 +100,7 @@ export function JobBoard({
       {!loaded ? (
         <div className="p-4 text-sm text-muted-foreground">加载中…</div>
       ) : view === 'kanban' ? (
-        <KanbanView applications={filteredApplications} onSelect={handleSelect} />
+        <KanbanView applications={filteredApplications} onSelect={handleSelect} onChanged={refresh} />
       ) : (
         <ListView applications={filteredApplications} onSelect={handleSelect} />
       )}
