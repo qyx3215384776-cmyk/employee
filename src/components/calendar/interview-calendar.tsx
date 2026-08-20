@@ -6,6 +6,7 @@ import { CalendarGrid } from './calendar-grid';
 import { DayDetailDialog } from './day-detail-dialog';
 import { listAllTimelineEntries, type TimelineEntryWithApplication } from '@/lib/db/job-application-repo';
 import { dateKey, getMonthGrid } from '@/lib/calendar';
+import { useAppMode } from '@/lib/mode-context';
 
 interface InterviewCalendarProps {
   onOpenApplication: (jobApplicationId: string) => void;
@@ -17,6 +18,7 @@ function monthLabel(date: Date): string {
 }
 
 export function InterviewCalendar({ onOpenApplication, onRequestNewTip }: InterviewCalendarProps) {
+  const { mode, ready } = useAppMode();
   const [cursor, setCursor] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -27,6 +29,7 @@ export function InterviewCalendar({ onOpenApplication, onRequestNewTip }: Interv
   );
 
   useEffect(() => {
+    if (!ready) return;
     let cancelled = false;
     listAllTimelineEntries().then((result) => {
       if (cancelled) return;
@@ -35,7 +38,7 @@ export function InterviewCalendar({ onOpenApplication, onRequestNewTip }: Interv
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [mode, ready]);
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, TimelineEntryWithApplication[]>();

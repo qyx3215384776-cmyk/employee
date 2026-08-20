@@ -14,13 +14,55 @@ import {
   updateJobApplication,
 } from '@/lib/db/job-application-repo';
 import { formatDateTime } from '@/lib/format';
+import { useAppMode } from '@/lib/mode-context';
 import type { JobApplication } from '@/types';
 
 interface AgentChatProps {
   onOpenApplication?: (jobApplicationId: string) => void;
 }
 
+const DEMO_SCRIPT: AgentMessage[] = [
+  {
+    id: 'demo-msg-1',
+    role: 'user',
+    kind: 'text',
+    content: '我投了字节跳动的前端开发岗，是同学内推的',
+  },
+  {
+    id: 'demo-msg-2',
+    role: 'assistant',
+    kind: 'text',
+    content: '好的，已记录：字节跳动 · 前端开发工程师 · 已投递 · 来源：内推 ✅',
+  },
+  {
+    id: 'demo-msg-3',
+    role: 'user',
+    kind: 'text',
+    content: '字节那个进面试了，明天下午 3:30 二面',
+  },
+  {
+    id: 'demo-msg-4',
+    role: 'assistant',
+    kind: 'text',
+    content: '已更新：字节跳动 · 前端开发工程师 → 面试中·二面，明天 15:30。加油！💪',
+    applicationId: 'demo-06',
+  },
+  {
+    id: 'demo-msg-5',
+    role: 'user',
+    kind: 'text',
+    content: '我现在总共投了多少家？',
+  },
+  {
+    id: 'demo-msg-6',
+    role: 'assistant',
+    kind: 'text',
+    content: '你目前一共投了 15 家公司：3 家还在简历筛选、2 家进了笔试、4 家在面试中、已拿到 2 个 offer。整体转化率不错，继续保持！',
+  },
+];
+
 export function AgentChat({ onOpenApplication }: AgentChatProps) {
+  const { mode, ready } = useAppMode();
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -29,6 +71,7 @@ export function AgentChat({ onOpenApplication }: AgentChatProps) {
   const listEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!ready) return;
     let cancelled = false;
     listJobApplications().then((result) => {
       if (!cancelled) setApplications(result);
@@ -36,7 +79,16 @@ export function AgentChat({ onOpenApplication }: AgentChatProps) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [mode, ready]);
+
+  useEffect(() => {
+    // Demo mode ships a canned conversation so a new visitor sees how the
+    // Agent works without having to type anything; switching to personal
+    // mode clears it since those messages reference demo-only records.
+    if (!ready) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMessages(mode === 'demo' ? DEMO_SCRIPT : []);
+  }, [mode, ready]);
 
   useEffect(() => {
     listEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -14,6 +14,7 @@ import {
   type InterviewTipWithApplication,
 } from '@/lib/db/interview-tip-repo';
 import { listJobApplications } from '@/lib/db/job-application-repo';
+import { useAppMode } from '@/lib/mode-context';
 import type { JobApplication } from '@/types';
 
 interface PendingNewTip {
@@ -27,6 +28,7 @@ interface InterviewTipsProps {
 }
 
 export function InterviewTips({ pendingNewTip, onPendingNewTipHandled }: InterviewTipsProps = {}) {
+  const { mode, ready } = useAppMode();
   const [tips, setTips] = useState<InterviewTipWithApplication[]>([]);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -43,6 +45,7 @@ export function InterviewTips({ pendingNewTip, onPendingNewTipHandled }: Intervi
   }
 
   useEffect(() => {
+    if (!ready) return;
     let cancelled = false;
     Promise.all([listAllInterviewTips(), listJobApplications()]).then(([tipsResult, appsResult]) => {
       if (cancelled) return;
@@ -53,7 +56,7 @@ export function InterviewTips({ pendingNewTip, onPendingNewTipHandled }: Intervi
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [mode, ready]);
 
   useEffect(() => {
     if (!pendingNewTip || !loaded) return;

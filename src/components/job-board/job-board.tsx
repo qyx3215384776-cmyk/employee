@@ -8,6 +8,7 @@ import { JobDetailDialog } from './job-detail-dialog';
 import { NewApplicationDialog } from './new-application-dialog';
 import { listAllTimelineEntries, listJobApplications } from '@/lib/db/job-application-repo';
 import { exportJobApplicationsToExcel } from '@/lib/export/export-job-applications';
+import { useAppMode } from '@/lib/mode-context';
 import type { JobApplication } from '@/types';
 
 interface JobBoardProps {
@@ -25,6 +26,7 @@ export function JobBoard({
   focusStageFilter,
   onFocusStageFilterHandled,
 }: JobBoardProps = {}) {
+  const { mode, ready } = useAppMode();
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState<BoardView>('kanban');
@@ -41,6 +43,7 @@ export function JobBoard({
   }, []);
 
   useEffect(() => {
+    if (!ready) return;
     let cancelled = false;
     listJobApplications().then((result) => {
       if (cancelled) return;
@@ -50,7 +53,7 @@ export function JobBoard({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [mode, ready]);
 
   useEffect(() => {
     // This reacts to an imperative "open this application" command sent from
