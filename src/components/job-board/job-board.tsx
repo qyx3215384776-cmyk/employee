@@ -14,12 +14,16 @@ interface JobBoardProps {
   focusApplicationId?: string | null;
   onFocusApplicationHandled?: () => void;
   onRequestNewTip?: (jobApplicationId: string, timelineEntryId?: string) => void;
+  focusStageFilter?: StageFilter | null;
+  onFocusStageFilterHandled?: () => void;
 }
 
 export function JobBoard({
   focusApplicationId,
   onFocusApplicationHandled,
   onRequestNewTip,
+  focusStageFilter,
+  onFocusStageFilterHandled,
 }: JobBoardProps = {}) {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -61,6 +65,15 @@ export function JobBoard({
     }
     onFocusApplicationHandled?.();
   }, [focusApplicationId, loaded, applications, onFocusApplicationHandled]);
+
+  useEffect(() => {
+    // Same external-command pattern as the focusApplicationId effect above:
+    // the dashboard's funnel chart asks the board to jump to a stage filter.
+    if (!focusStageFilter || !loaded) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setStageFilter(focusStageFilter);
+    onFocusStageFilterHandled?.();
+  }, [focusStageFilter, loaded, onFocusStageFilterHandled]);
 
   const filteredApplications = useMemo(() => {
     const term = search.trim().toLowerCase();
