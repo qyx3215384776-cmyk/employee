@@ -47,7 +47,7 @@ export function StageFunnel({ stages, onStageClick }: StageFunnelProps) {
 
             {/* 条形区域 */}
             <div className="relative order-3 h-10 w-full sm:order-2 sm:w-auto sm:flex-1">
-              <div className="h-10 w-full rounded-lg bg-muted/50" />
+              <div className="h-10 w-full rounded-lg bg-muted/40" />
               <div
                 className="absolute inset-y-0 left-1/2 h-10 rounded-lg transition-[width] ease-out"
                 style={{

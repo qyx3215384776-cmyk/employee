@@ -14,6 +14,16 @@ export const RESULT_TYPE_LABELS: Record<ResultType, string> = {
   withdrawn: '已婉拒',
 };
 
+// Morandi palette shared with the dashboard funnel (src/lib/dashboard-stats.ts).
+// Tailwind needs each class as a full literal, so these are written out per
+// stage rather than composed from a shared hex value.
+export const MAIN_STAGE_BADGE_COLORS: Record<MainStage, string> = {
+  applied: 'bg-[#8FA3B0] text-white border-transparent',
+  written_test: 'bg-[#C4A882] text-white border-transparent',
+  interviewing: 'bg-[#A0889C] text-white border-transparent',
+  result: 'bg-[#8BAA96] text-white border-transparent',
+};
+
 export function stageLabel(app: Pick<JobApplication, 'mainStage' | 'subStage' | 'resultType'>): string {
   if (app.mainStage === 'interviewing' && app.subStage) {
     return `面试中·${app.subStage}`;

@@ -9,7 +9,8 @@ import {
   KanbanBoardProvider,
 } from '@/components/kanban';
 import { KanbanCard } from './kanban-card';
-import { MAIN_STAGE_LABELS, updateJobApplication } from '@/lib/db/job-application-repo';
+import { Badge } from '@/components/ui/badge';
+import { MAIN_STAGE_BADGE_COLORS, MAIN_STAGE_LABELS, updateJobApplication } from '@/lib/db/job-application-repo';
 import type { JobApplication, MainStage } from '@/types';
 
 const COLUMNS: MainStage[] = ['applied', 'written_test', 'interviewing', 'result'];
@@ -52,7 +53,9 @@ export function KanbanView({ applications, onSelect, onChanged }: KanbanViewProp
             onDropOverColumn={(data) => handleDropOverColumn(stage, data)}
           >
             <KanbanBoardColumnHeader>
-              <KanbanBoardColumnTitle columnId={stage}>{MAIN_STAGE_LABELS[stage]}</KanbanBoardColumnTitle>
+              <KanbanBoardColumnTitle columnId={stage}>
+                <Badge className={MAIN_STAGE_BADGE_COLORS[stage]}>{MAIN_STAGE_LABELS[stage]}</Badge>
+              </KanbanBoardColumnTitle>
               <span className="text-xs text-muted-foreground">{items.length}</span>
             </KanbanBoardColumnHeader>
             <KanbanBoardColumnList>
