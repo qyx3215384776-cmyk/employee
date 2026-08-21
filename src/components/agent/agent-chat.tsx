@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ChatMessage, type AgentMessage } from './chat-message';
 import { NewApplicationDialog } from '@/components/job-board/new-application-dialog';
-import { matchApplication, buildPendingConfirmation } from '@/lib/agent/match-application';
-import type { ExtractedFields, HistoryTurn } from '@/lib/llm/extract-job-update';
+import type { PendingConfirmation } from '@/lib/agent/match-application';
+import type { PendingAction } from '@/lib/agent/tool-executor';
+import type { HistoryTurn } from '@/lib/llm/extract-job-update';
 import {
   createJobApplication,
   listJobApplications,
@@ -15,7 +16,47 @@ import {
 } from '@/lib/db/job-application-repo';
 import { formatDateTime } from '@/lib/format';
 import { useAppMode } from '@/lib/mode-context';
-import type { JobApplication } from '@/types';
+import type { JobApplication, MainStage, ResultType } from '@/types';
+
+function actionToPendingConfirmation(
+  action: PendingAction,
+  applications: JobApplication[]
+): PendingConfirmation | null {
+  if (action.type === 'create') {
+    if (!action.company || !action.position) return null;
+    const stage = (action.mainStage as MainStage | undefined) ?? 'applied';
+    return {
+      status: 'pending',
+      mode: 'create',
+      company: action.company,
+      position: action.position,
+      mainStage: stage,
+      subStage: stage === 'interviewing' ? action.subStage : undefined,
+      resultType: stage === 'result' ? (action.resultType as ResultType | undefined) : undefined,
+      appliedDate: new Date().toISOString().slice(0, 10),
+      nextActionDate: action.nextActionDate,
+      source: action.source,
+    };
+  }
+
+  const existing = applications.find((app) => app.id === action.applicationId);
+  if (!existing) return null;
+
+  const stage = (action.mainStage as MainStage | undefined) ?? existing.mainStage;
+  return {
+    status: 'pending',
+    mode: 'update',
+    jobApplicationId: existing.id,
+    company: existing.company,
+    position: existing.position,
+    mainStage: stage,
+    subStage: stage === 'interviewing' ? (action.subStage ?? existing.subStage) : undefined,
+    resultType: stage === 'result' ? ((action.resultType as ResultType | undefined) ?? existing.resultType) : undefined,
+    appliedDate: existing.appliedDate,
+    nextActionDate: action.nextActionDate ?? existing.nextActionDate,
+    source: action.source ?? existing.source,
+  };
+}
 
 interface AgentChatProps {
   onOpenApplication?: (jobApplicationId: string) => void;
@@ -120,48 +161,30 @@ export function AgentChat({ onOpenApplication }: AgentChatProps) {
     try {
       const history: HistoryTurn[] = messages
         .filter((m) => m.kind === 'text')
-        .slice(-6)
+        .slice(-10)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      const res = await fetch('/api/agent/parse', {
+      const res = await fetch('/api/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history }),
+        body: JSON.stringify({ message: text, history, applications }),
       });
       const data = await res.json();
 
       if (!res.ok) {
-        pushMessage({ role: 'assistant', kind: 'error', content: data.error ?? '解析失败，请稍后重试。' });
+        pushMessage({ role: 'assistant', kind: 'error', content: data.error ?? '处理失败，请稍后重试。' });
         return;
       }
 
-      const extracted = data as ExtractedFields;
-      if (!extracted.company) {
-        pushMessage({ role: 'assistant', kind: 'text', content: '能告诉我是哪家公司吗？' });
-        return;
-      }
-      if (extracted.needsClarification) {
-        pushMessage({
-          role: 'assistant',
-          kind: 'text',
-          content: extracted.clarificationQuestion ?? '能再说清楚一点吗？',
-        });
-        return;
+      if (data.reply) {
+        pushMessage({ role: 'assistant', kind: 'text', content: data.reply });
       }
 
-      const match = matchApplication(extracted, applications);
-      if (match.kind === 'clarify') {
-        pushMessage({ role: 'assistant', kind: 'text', content: match.question });
-        return;
+      for (const action of (data.pendingActions ?? []) as PendingAction[]) {
+        const confirmation = actionToPendingConfirmation(action, applications);
+        if (!confirmation) continue;
+        pushMessage({ role: 'assistant', kind: 'confirmation', content: '请确认以下操作：', confirmation });
       }
-
-      const confirmation = buildPendingConfirmation(match);
-      if (!confirmation) {
-        pushMessage({ role: 'assistant', kind: 'error', content: '解析结果有误，请换个说法再试一次。' });
-        return;
-      }
-
-      pushMessage({ role: 'assistant', kind: 'confirmation', content: '请确认以下信息：', confirmation });
     } catch {
       pushMessage({ role: 'assistant', kind: 'error', content: '网络请求失败，请稍后重试。' });
     } finally {
@@ -229,7 +252,12 @@ export function AgentChat({ onOpenApplication }: AgentChatProps) {
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto rounded-lg border p-4">
         {messages.length === 0 ? (
           <div className="m-auto max-w-sm text-center text-sm text-muted-foreground">
-            试试输入，比如&ldquo;我投了字节跳动的后端开发岗&rdquo;，或者&ldquo;腾讯那个进笔试了，7月28号&rdquo;。
+            <p className="mb-2 font-medium text-foreground">试试这样说：</p>
+            <p>&ldquo;我投了字节跳动的后端开发岗&rdquo;</p>
+            <p>&ldquo;腾讯那个进笔试了，7月28号考&rdquo;</p>
+            <p>&ldquo;我现在总共投了多少家？&rdquo;</p>
+            <p>&ldquo;这周有什么面试安排？&rdquo;</p>
+            <p>&ldquo;帮我看看美团现在到哪一步了&rdquo;</p>
           </div>
         ) : (
           messages.map((m) => (
