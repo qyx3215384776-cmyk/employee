@@ -1,4 +1,4 @@
-import type { JobApplication } from '@/types';
+import type { JobApplication, MainStage } from '@/types';
 import type { TimelineEntryWithApplication } from '@/lib/db/job-application-repo';
 
 function startOfDay(date: Date): Date {
@@ -78,10 +78,9 @@ export function dueBucket(dateIso: string, reference: Date = new Date()): DueBuc
 }
 
 export interface FunnelStage {
-  key: 'applied' | 'written_test' | 'interviewing' | 'offer';
+  key: MainStage;
   label: string;
   count: number;
-  rate: number;
   color: string;
 }
 
@@ -93,14 +92,12 @@ export function buildFunnelStages(applications: JobApplication[]): FunnelStage[]
   const reachedInterviewing = applications.filter((app) =>
     (['interviewing', 'result'] as const).includes(app.mainStage as never)
   ).length;
-  const offers = applications.filter((app) => app.resultType === 'offer').length;
-
-  const rate = (count: number) => (total === 0 ? 0 : Math.round((count / total) * 100));
+  const reachedResult = applications.filter((app) => app.mainStage === 'result').length;
 
   return [
-    { key: 'applied', label: '投递', count: total, rate: rate(total), color: '#3b82f6' },
-    { key: 'written_test', label: '笔试', count: reachedWrittenTest, rate: rate(reachedWrittenTest), color: '#8b5cf6' },
-    { key: 'interviewing', label: '面试', count: reachedInterviewing, rate: rate(reachedInterviewing), color: '#f97316' },
-    { key: 'offer', label: 'Offer', count: offers, rate: rate(offers), color: '#22c55e' },
+    { key: 'applied', label: '已投递', count: total, color: 'bg-blue-500 dark:bg-blue-400' },
+    { key: 'written_test', label: '笔试', count: reachedWrittenTest, color: 'bg-amber-500 dark:bg-amber-400' },
+    { key: 'interviewing', label: '面试中', count: reachedInterviewing, color: 'bg-purple-500 dark:bg-purple-400' },
+    { key: 'result', label: '有结果', count: reachedResult, color: 'bg-green-500 dark:bg-green-400' },
   ];
 }
