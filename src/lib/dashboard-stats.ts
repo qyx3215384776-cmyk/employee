@@ -95,9 +95,9 @@ export function buildFunnelStages(applications: JobApplication[]): FunnelStage[]
   const reachedResult = applications.filter((app) => app.mainStage === 'result').length;
 
   return [
-    { key: 'applied', label: '已投递', count: total, color: 'bg-blue-500 dark:bg-blue-400' },
-    { key: 'written_test', label: '笔试', count: reachedWrittenTest, color: 'bg-amber-500 dark:bg-amber-400' },
-    { key: 'interviewing', label: '面试中', count: reachedInterviewing, color: 'bg-purple-500 dark:bg-purple-400' },
-    { key: 'result', label: '有结果', count: reachedResult, color: 'bg-green-500 dark:bg-green-400' },
+    { key: 'applied', label: '已投递', count: total, color: 'bg-blue-400/40 dark:bg-blue-400/30' },
+    { key: 'written_test', label: '笔试', count: reachedWrittenTest, color: 'bg-amber-400/40 dark:bg-amber-400/30' },
+    { key: 'interviewing', label: '面试中', count: reachedInterviewing, color: 'bg-purple-400/40 dark:bg-purple-400/30' },
+    { key: 'result', label: '有结果', count: reachedResult, color: 'bg-emerald-400/40 dark:bg-emerald-400/30' },
   ];
 }
